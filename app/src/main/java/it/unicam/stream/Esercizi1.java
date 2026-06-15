@@ -1,9 +1,13 @@
 package it.unicam.stream;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
+
+import it.unicam.stream.Esercizi1.LibrettoStudente;
 
 public class Esercizi1 {
 
@@ -58,6 +62,16 @@ public class Esercizi1 {
         );
     }
 
+    private Stream<Esame> esami(int id){
+        return esami().stream().filter(e -> e.idStudente() == id);
+    }
+
+    private int mediaPesata(int id){
+        return (int) (esami(id).map(e -> e.crediti() * e.voto())
+                            .reduce(0, (a, b) -> a + b) 
+                            / esami(id).count());
+    }
+
     /**
      * Restituisce la classifica degli studenti attivi ordinata per media pesata decrescente.
      *
@@ -67,7 +81,14 @@ public class Esercizi1 {
      * @return una lista di libretti studente ordinata per media pesata decrescente
      */
     public List<LibrettoStudente> classificaStudentiAttiviPerMediaPesata() {
-        throw new UnsupportedOperationException();
+        return studenti().stream().filter(x -> x.attivo())
+                .sorted(
+                    Comparator.comparing((Studente x) -> mediaPesata(x.id())).reversed()
+                ).map(x -> 
+                    new LibrettoStudente(x.nome(), x.corso(), 
+                    esami(x.id()).map(e -> e.crediti).reduce(0, (a, b) -> a + b), 
+                    mediaPesata(x.id()))
+                ).toList();
     }
 
     /**
